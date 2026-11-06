@@ -23,3 +23,12 @@ def windows(values, width):
                 window.popleft()
 
     return generate()
+
+
+def moving_average(values, width):
+    """Return arithmetic means of consecutive full-width windows.
+
+    Consume values once, omitting incomplete windows. Width validation and
+    errors are inherited from windows, including when values is empty.
+    """
+    return [sum(window) / width for window in windows(values, width)]

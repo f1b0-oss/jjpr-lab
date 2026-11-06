@@ -1,0 +1,42 @@
+name: jjpr CI experiment
+
+on:
+  push:
+    branches: ['agent/**']
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: ci/verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Fetch the exact pushed commit from this public fixture
+        env:
+          CANDIDATE_SHA: ${{ github.sha }}
+          FIXTURE_REPOSITORY: ${{ github.repository }}
+        run: |
+          git init .
+          git config core.hooksPath /dev/null
+          git remote add origin "https://github.com/${FIXTURE_REPOSITORY}.git"
+          git fetch --no-tags --depth=1 origin "$CANDIDATE_SHA"
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
+      - name: Run the repository's standard-library tests
+        run: |
+          python3 - <<'PY'
+          import unittest
+          suite = unittest.defaultTestLoader.discover('tests')
+          if suite.countTestCases() == 0:
+              raise SystemExit('Refusing an empty CI test suite')
+          result = unittest.TextTestRunner(verbosity=2).run(suite)
+          raise SystemExit(0 if result.wasSuccessful() else 1)
+          PY
+      - name: Exercise the integration gate with a deliberate CI failure
+        run: |
+          if test -e .ci/deliberate-failure; then
+            echo 'Expected experiment failure: remove the marker in the next signed revision.'
+            exit 1
+          fi

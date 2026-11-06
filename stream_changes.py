@@ -24,3 +24,12 @@ def differences(values):
         previous = value
         have_previous = True
     return result
+
+
+def total_change(values):
+    """Sum successive differences, returning zero for fewer than two values.
+
+    Consume the input once through differences(), inheriting its validation
+    and Python arithmetic behavior (including rounding and overflow).
+    """
+    return sum(differences(values))

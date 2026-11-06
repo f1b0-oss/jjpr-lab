@@ -1,6 +1,7 @@
 """Streaming helpers for rolling numeric analysis."""
 
 from collections import deque
+from statistics import mean
 
 
 def windows(values, width):
@@ -24,3 +25,12 @@ def windows(values, width):
                 buffer.popleft()
 
     return generate()
+
+
+def moving_average(values, width):
+    """Return arithmetic means of consecutive full-width windows.
+
+    Consume a finite iterable once, returning [] when it has fewer than width
+    values. Width validation and window construction are delegated to windows.
+    """
+    return [mean(window) for window in windows(values, width)]
